@@ -177,6 +177,7 @@ class LocustRunner(object):
         # if we are currently hatching locusts we need to kill the hatching greenlet first
         if self.hatching_greenlet and not self.hatching_greenlet.ready():
             self.hatching_greenlet.kill(block=True)
+        events.befor_locust_stop.fire()
         self.locusts.kill(block=True)
         self.state = STATE_STOPPED
         events.locust_stop_hatching.fire()
@@ -344,6 +345,8 @@ class MasterLocustRunner(DistributedLocustRunner):
                     logger.info("Client %r quit. Currently %i clients connected." % (msg.node_id, len(self.clients.ready)))
             elif msg.type == "exception":
                 self.log_exception(msg.node_id, msg.data["msg"], msg.data["traceback"])
+            elif msg.type == "custom_stats":
+                events.receive_custom_stats.fire()
 
     @property
     def slave_count(self):
